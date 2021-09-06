@@ -68,9 +68,12 @@ export default class GamePlay {
    *
    * @param positions array of PositionedCharacter objects
    */
+
   redrawPositions(positions) {
     for (const cell of this.cells) {
-      cell.innerHTML = '';
+      if (positions.position === cell) {
+          cell.innerHTML = ''
+      }
     }
 
     for (const position of positions) {
@@ -115,6 +118,7 @@ export default class GamePlay {
    * @param callback
    */
   addCellClickListener(callback) {
+    console.log('wtf')
     this.cellClickListeners.push(callback);
   }
 
