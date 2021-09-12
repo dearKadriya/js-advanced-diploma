@@ -99,6 +99,7 @@ export default class GamePlay {
    *
    * @param callback
    */
+
   addCellEnterListener(callback) {
     this.cellEnterListeners.push(callback);
   }
