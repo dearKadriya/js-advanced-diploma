@@ -204,6 +204,15 @@ export default class GamePlay {
   showCellTooltip(message, index) {
     this.cells[index].title = message;
   }
+  addToolTip(cell) {
+    const toolTip = document.createElement('div');
+    toolTip.className = 'toolTip';
+    cell.appendChild(toolTip)
+  }
+  deleteToolTip(cell) {
+    const toolTip = cell.querySelector('.toolTip');
+    toolTip.remove();
+  }
 
   hideCellTooltip(index) {
     this.cells[index].title = '';
