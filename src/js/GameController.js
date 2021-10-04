@@ -18,7 +18,6 @@ export default class GameController {
     const playerTeam = generateTeam([Swordsman, Bowman, Magician], 1, 2);
     const npcTeam = generateTeam([Undead, Daemon, Vampire], 1, 2);
     this.turn('player')
-    console.log(GameState.turn)
     this.gamePlay.positionedPlayersTeam = getTeamWithPosition(playerTeam, npcTeam);
     this.gamePlay.redrawPositions(this.gamePlay.positionedPlayersTeam);
     this.gamePlay.addCellLeaveListener((index) => this.onCellLeave(index))
@@ -33,7 +32,6 @@ export default class GameController {
 
   onCellClick(index) {
     const cell = this.gamePlay.cells[index];
-    console.log(cell)
     const char = this.gamePlay.positionedPlayersTeam
     if ((this.gamePlay.possiblePosition) !== undefined && (this.gamePlay.possiblePosition.includes(index))) {
       for (let position in this.gamePlay.positionedPlayersTeam) {
@@ -43,7 +41,6 @@ export default class GameController {
           this.gamePlay.redrawPositions(this.gamePlay.positionedPlayersTeam)
           let choosenState = this.gamePlay.cells[GameState.selected]
           choosenState.innerHTML = ''
-          console.log(this.gamePlay.positionedPlayersTeam[position].position)
           this.getToolTip(index)
         }
       }
@@ -62,8 +59,34 @@ export default class GameController {
             this.gamePlay.selectCell(index, 'yellow');
             this.selectedPosition(index);
           }
-          console.log(this.gamePlay.selectedChar)
+          // console.log(this.gamePlay.selectedChar)
 
+        } else if ((char[position].position === index) && (this.gamePlay.possibleAttack.includes(char[position].position))){
+          let target = char[position].character
+          this.gamePlay.targetChar = char[position]
+          this.gamePlay.showDamage(index, this.gamePlay.selectedChar.character.attack).then(resolve => {
+            target.health -= Math.max(this.gamePlay.selectedChar.character.attack - target.defence, this.gamePlay.selectedChar.character.attack * 0.1)
+
+            console.log(this.gamePlay.positionedPlayersTeam)
+            this.gamePlay.deselectCell(index);
+            for (let position in this.gamePlay.positionedPlayersTeam) {
+              if (this.gamePlay.positionedPlayersTeam[position].position === this.gamePlay.targetChar.position) {
+                let indexForDelete = this.gamePlay.positionedPlayersTeam.indexOf(this.gamePlay.positionedPlayersTeam[position])
+                let cell = this.gamePlay.cells[this.gamePlay.targetChar.position]
+                this.gamePlay.deleteToolTip(this.gamePlay.targetChar.position)
+                console.log(cell)
+                if (indexForDelete > -1) {
+                  this.gamePlay.positionedPlayersTeam.splice(indexForDelete, 1);
+
+                }
+              }
+            }
+            if (target.health <= 0) {
+
+
+            }
+            this.gamePlay.redrawPositions(this.gamePlay.positionedPlayersTeam)
+          })
         } else {
           this.gamePlay.setCursor('pointer');
           GamePlay.showError('Выбирать можно только своего персонажа!')
@@ -71,7 +94,6 @@ export default class GameController {
         if ((GameState.selected !== undefined)) {
           let movesWithoutOthers = this.possibleCellForMove(GameState.selected, types);
           let attack = this.possibleAttack(GameState.selected, types)
-          console.log(attack)
           for (let position in char) {
             if (movesWithoutOthers.includes(char[position].position)) {
               let num = movesWithoutOthers.indexOf(char[position].position)
@@ -80,6 +102,7 @@ export default class GameController {
               }
             }
           }
+          this.gamePlay.possibleAttack = attack
           this.gamePlay.possiblePosition = movesWithoutOthers
         }
 
@@ -90,9 +113,8 @@ export default class GameController {
 
   onCellEnter(index) {
     const cell = this.gamePlay.cells[index];
-    const char = this.gamePlay.positionedPlayersTeam
-    console.log(index)
-    console.log(cell)
+    // console.log(index)
+    // console.log(cell)
     if ((this.gamePlay.possiblePosition === undefined) || (!this.gamePlay.possiblePosition.includes(index))) {
       this.gamePlay.setCursor('auto');
       this.gamePlay.setCursor('not-allowed')
@@ -100,6 +122,24 @@ export default class GameController {
       this.gamePlay.setCursor('pointer');
       this.gamePlay.selectCell(index, 'green')
     }
+
+    let NPCTeam = []
+    let npcTypes = ['daemon', 'undead', 'vampire']
+    const char = this.gamePlay.positionedPlayersTeam
+    for (let position in this.gamePlay.positionedPlayersTeam) {
+      if (npcTypes.includes(char[position].character.type)) {
+        NPCTeam.push(char[position])
+      }
+    }
+    this.gamePlay.NPCTeam = NPCTeam
+    for (let position in this.gamePlay.NPCTeam) {
+      if ((this.gamePlay.NPCTeam[position].position === index) && (this.gamePlay.possibleAttack.includes(this.gamePlay.NPCTeam[position].position))) {
+        this.gamePlay.setCursor('crosshair')
+        this.gamePlay.selectCell(index, 'red')
+      }
+    }
+
+
     this.getToolTip(index)
   }
 
@@ -201,13 +241,13 @@ export default class GameController {
     return indexes
   }
 
-  calculateUp(index, count, attack = false) {
+  calculateUp(index, count) {
     let cellIndex = this.gamePlay.cells[index];
     let indexes = [];
     let classNames = ['map-tile-top-left', 'map-tile-top', 'map-tile-top-right'];
     let ticks = 0;
     for (let i = (index - 8); i >= 0;) {
-      if (ticks === count ) {
+      if (ticks === count) {
         break
       }
       let cell = this.gamePlay.cells[i];
@@ -220,11 +260,6 @@ export default class GameController {
       } else {
         indexes.push(i);
         ticks++
-        if (ticks === count && attack === true) {
-          indexes.push(i + 1)
-          indexes.push(i - 1)
-          break
-        }
         i = i - 8
 
       }
@@ -379,23 +414,23 @@ export default class GameController {
   }
 
   possibleAttack(index, type) {
-    let count = 2
-    // let left = this.calculateLeft(index, count)
-    // let right = this.calculateRight(index, count)
-    let up = this.calculateUp(index, count, true)
-    // let down = this.calculateDown(index, count)
-    // let upRight = this.calculateUpRight(index, count)
-    // let upLeft = this.calculateUpLeft(index, count)
-    // let downRight = this.calculateDownRight(index, count)
-    // let downLeft = this.calculateDownLeft(index, count)
-    // let allPos = left.concat(right, up, down, upRight, upLeft, downRight, downLeft)
-    return up
+    let count = 0
+    if (type === 'swordsman' || type === 'undead') {
+      count = 1
+    } else if (type === 'vampire' || type === 'bowman') {
+      count = 2
+    } else if (type === 'daemon' || type === 'magician') {
+      count = 4
+    }
+    let left = this.calculateLeft(index, count)
+    let right = this.calculateRight(index, count)
+    let up = this.calculateUp(index, count)
+    let down = this.calculateDown(index, count)
+    let upRight = this.calculateUpRight(index, count)
+    let upLeft = this.calculateUpLeft(index, count)
+    let downRight = this.calculateDownRight(index, count)
+    let downLeft = this.calculateDownLeft(index, count)
+    let allPos = left.concat(right, up, down, upRight, upLeft, downRight, downLeft)
+    return allPos
   }
 }
-
-
-
-
-
-
-
