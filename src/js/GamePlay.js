@@ -119,7 +119,6 @@ export default class GamePlay {
    * @param callback
    */
   addCellClickListener(callback) {
-    console.log('wtf')
     this.cellClickListeners.push(callback);
   }
 
@@ -212,6 +211,7 @@ export default class GamePlay {
   deleteToolTip(cell) {
     const toolTip = cell.querySelector('.toolTip');
     toolTip.remove();
+    cell.removeAttribute('title')
   }
 
   hideCellTooltip(index) {

@@ -1,7 +1,12 @@
 export default class GameState {
+
   static from(object) {
-    this.turn = object.turn
-    this.selected = object.selecting
-    return null;
+    object.chars = GameState.chars
+    object.turn = GameState.turn
+    object.selected = GameState.selected
+    object.score = GameState.score
+    object.theme = GameState.theme
+    return object
   }
+
 }
