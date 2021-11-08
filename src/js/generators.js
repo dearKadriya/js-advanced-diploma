@@ -12,7 +12,7 @@ import PositionedCharacter from "./PositionedCharacter";
  */
 export function* characterGenerator(allowedTypes, maxLevel) {
   const allowedType = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
-  const type = allowedType.name.toString().toLowerCase()
+  const type = allowedType.name.toLowerCase()
   let level = Math.floor((Math.random() * maxLevel) + 1)
   yield new allowedType(level, type);
 
