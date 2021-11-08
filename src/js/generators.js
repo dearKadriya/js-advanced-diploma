@@ -1,4 +1,4 @@
-import {Bowman, Swordsman} from "./playerCharacters";
+import {Bowman, Magician, Swordsman} from "./playerCharacters";
 import {Daemon, Undead, Vampire} from "./npcCharacters";
 import PositionedCharacter from "./PositionedCharacter";
 
@@ -12,7 +12,20 @@ import PositionedCharacter from "./PositionedCharacter";
  */
 export function* characterGenerator(allowedTypes, maxLevel) {
   const allowedType = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
-  const type = allowedType.name.toLowerCase()
+  let type = ''
+  if (allowedType === Swordsman) {
+    type = 'swordsman'
+  } else if (allowedType === Bowman) {
+    type = 'bowman'
+  } else if (allowedType === Magician) {
+    type = 'magician'
+  } else if (allowedType === Undead) {
+    type = 'undead'
+  } else if (allowedType === Daemon) {
+    type = 'daemon'
+  } else if (allowedType === Vampire) {
+    type = 'vampire'
+  }
   let level = Math.floor((Math.random() * maxLevel) + 1)
   yield new allowedType(level, type);
 
